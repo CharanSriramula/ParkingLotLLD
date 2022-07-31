@@ -1,0 +1,173 @@
+We will focus on the following set of requirements while designing the parking lot:
+
+1. The parking lot should have multiple floors where customers can park their cars.
+
+2. The parking lot should have multiple entry and exit points.
+
+3. Customers can collect a parking ticket from the entry points and can pay the parking fee at the exit points on their way out.
+
+4. Customers can pay the tickets at the automated exit panel or to the parking attendant.
+
+5. Customers can pay via both cash and credit cards.
+
+6. Customers should also be able to pay the parking fee at the customer’s info portal on each parkingFloor. If the customer has paid at the info portal, they don’t have to pay at the exit.
+
+7. The system should not allow more vehicles than the maximum capacity of the parking lot. If the parking is full, the system should be able to show a message at the entrance panel and on the parking display board on the ground parkingFloor.
+
+8. Each parking parkingFloor will have many parking spots. The system should support multiple types of parking spots such as Compact, Large, Handicapped, Motorcycle, etc.
+
+9. The Parking lot should have some parking spots specified for electric cars. These spots should have an electric panel through which customers can pay and charge their vehicles.
+
+10. The system should support parking for different types of vehicles like car, truck, van, motorcycle, etc.
+
+11. Each parking parkingFloor should have a display board showing any free parking spot for each spot type.
+
+12. The system should support a per-hour parking fee model. For example, customers have to pay $4 for the first hour, $3.5 for the second and third hours, and $2.5 for all the remaining hours.
+
+
+Entities
+
+1. ParkingLotBuilding
+   -> id
+   -> address1
+   -> address2
+   -> Map<Integer, Floor> floors;
+
+   public ParkingLotBuilding() {
+     floors = new HashMap<>();
+   }
+
+   public void addFloor(Floor parkingFloor) {
+     this.floors.put(parkingFloor.getId, parkingFloor);
+   }
+
+2. Floor
+   -> id;
+   -> Map<VehicleClassification, Integer> parkedVehiclesCount;
+   -> Map<VehicleClassification, List<ParkingSpot> > allSpots;
+   -> DisplayBoard displayBoard;
+   -> List<Entrance> entrancePoints;
+   -> List<Exit> exitPoints;
+
+   Floor() {
+   // all initialisations..
+   }
+
+   addParkingSpot(VehicleClassification)
+   getFreeSpots(VehicleClassification vehicleClassification);
+   getOccupiedSpots(VehicleClassification vehicleClassification);
+   entrancePoint.entry(vehicle);
+   parkVehicle(Vehicle vehicle, ParkingSpot parkingSpot) {
+      parkingSpot.parkVehicle(vehicle);
+      VehicleClassification type = vehicle.getVehicleClassification();
+      parkedVehiclesCount.get(type).add(1);
+   }
+      unParkVehicle(Vehicle vehicle, ParkingSpot parkingSpot) {
+         parkingSpot.unParkVehicle();
+         VehicleClassification type = vehicle.getVehicleClassification();
+         parkedVehiclesCount.get(type).subtract(1);
+         exitPoint.exit(vehicle, parkingSpot);
+      }
+
+      void showDisplayBoard();
+
+3. Vehicle
+   -> id
+   -> VehicleType vehicleType;
+   -> VehicleClassification vehicleClassification;
+
+4. Ticket
+   -> customerId;
+   -> vehicleId;
+   -> entryTime;
+   -> exitTime;
+   -> floorId;
+   -> parkingSpotId;
+
+5. ParkingSpot
+   -> id;
+   -> floorId;
+   -> VehicleClassification;
+   -> Vehicle parkedVehicle;
+   -> startTime
+
+   isEmpty();
+   parkVehicle(Vehicle vehicle);
+   unParkVehicle() {
+     this.parkedVehicle = null;
+   }
+
+6. Customer
+   -> id
+   -> name
+   -> Vehicle
+
+7. DisplayBoard (on each parkingFloor)
+   -> list of free spots for each VehicleClassification type in a parkingFloor
+
+8. Entrance
+   -> id
+   -> floorId
+   public void entry() {
+   issueTicket(Vehicle vehicle, ParkingSpot parkingSpot);
+   }
+   private Ticket issueTicket();
+
+9. Exit
+   -> id
+   -> floorId
+   public void exit(Vehicle vehicle, ParkingSpot parkingSpot) {
+   private void payment(PaymentService paymentMethod) {
+   paymentMethod.pay();
+   }
+
+11. Payment (Interface) (Strategy Pattern)
+    -> DebitCard
+    -> CreditCard
+    -> NetBanking
+    -> Cash
+
+12. ParkingStrategy (Interface)
+    -> LeastFreeId
+    -> MaxFreeId
+
+13. Exceptions
+
+15. VehicleClassification (enum)
+    -> Compact
+    -> Huge (Lorry, Truck)
+    -> Handicapped
+
+16. VehicleType (enum)
+    -> Car
+    -> Bike
+    -> Truck
+
+
+
+ParkingService {
+Payment paymentMethod;
+ParkingSpotStrategy parkingSpotStrategy;
+Entrance entrance;
+Exit exitIns;
+ParkingLotBuilding parkingLotBuilding
+
+public void parkVehicle(Vehicle vehicle) {
+ ParkingSpot parkingSpot = parkingSpotStrategy.getFreeSpot();
+ if(parkingSpot == null) {
+ throw Exception();
+ }
+ Ticket ticket = entrance.getTicket(vehicle, parkingSpot);
+ Floor parkingFloor = parkingLotBuilding.getFloors.get(parkingSpot.getFloorId());
+ parkingFloor.parkVehicle(vehicle, parkingSpot);
+}
+
+public void unParkVehicle(ParkingSpot parkingSpot) {
+ if(parkingSpot.getParkedVehicle() == null) {
+ throw Exception();
+ }
+  Floor parkingFloor = parkingLotBuilding.getFloors.get(parkingSpot.getFloorId());
+  parkingFloor.unParkVehicle(vehicle, parkingSpot);
+  exitIns.exit(paymentMethod);
+}
+}
